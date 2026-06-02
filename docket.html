@@ -521,36 +521,61 @@ function openEdit(type, id, date, currentText, currentTag, currentPri){
 const dayCol = collection(db,'dayTasks');
 const blCol  = collection(db,'backlog');
 
+let suppressNextDaySnap = false;
+let suppressNextBlSnap  = false;
+
 onSnapshot(dayCol, snap => {
   dayCache={};
   snap.forEach(d => { dayCache[d.id]=d.data().tasks||[]; });
-  if(!loaded){ loaded=true; loading.classList.add('hidden'); setSS('synced'); }
+  if(!loaded){ loaded=true; loading.classList.add('hidden'); setSS('synced'); renderDaily(); return; }
+  if(suppressNextDaySnap){ suppressNextDaySnap=false; return; } // skip — optimistic already rendered
   renderDaily();
 }, () => { setSS('error'); loading.classList.add('hidden'); });
 
 onSnapshot(blCol, snap => {
-  backlogCache=[];
-  snap.forEach(d => backlogCache.push(d.data()));
-  backlogCache.sort((a,b)=>a.createdAt-b.createdAt);
-  renderBacklog();
+  // only update cache from server if we're not mid-optimistic-update
+  if(!suppressNextBlSnap){
+    backlogCache=[];
+    snap.forEach(d => backlogCache.push(d.data()));
+    backlogCache.sort((a,b)=>a.createdAt-b.createdAt);
+    renderBacklog();
+  }
+  suppressNextBlSnap=false;
 }, () => setSS('error'));
 
 const getDayTasks = date => (dayCache[date]||[]).map(t=>({...t,subtasks:[...(t.subtasks||[])]}));
 
-async function saveDayTasks(date,tasks){
+// Optimistic update: write to local cache + re-render immediately, then persist to Firestore
+function saveDayTasks(date, tasks){
+  dayCache[date] = tasks;
+  renderDaily();
   setSS('syncing');
-  try{ await setDoc(doc(db,'dayTasks',date),{tasks}); setSS('synced'); }
-  catch(e){ console.error(e); setSS('error'); }
+  suppressNextDaySnap = true;
+  setDoc(doc(db,'dayTasks',date),{tasks})
+    .then(()=>setSS('synced'))
+    .catch(e=>{ console.error(e); setSS('error'); suppressNextDaySnap=false; });
 }
-async function saveBacklogItem(item){
+
+function saveBacklogItem(item){
+  const idx = backlogCache.findIndex(t=>t.id===item.id);
+  if(idx>=0) backlogCache[idx]=item; else backlogCache.push(item);
+  backlogCache.sort((a,b)=>a.createdAt-b.createdAt);
+  renderBacklog();
   setSS('syncing');
-  try{ await setDoc(doc(db,'backlog',String(item.id)),item); setSS('synced'); }
-  catch(e){ console.error(e); setSS('error'); }
+  suppressNextBlSnap = true;
+  setDoc(doc(db,'backlog',String(item.id)),item)
+    .then(()=>setSS('synced'))
+    .catch(e=>{ console.error(e); setSS('error'); suppressNextBlSnap=false; });
 }
-async function deleteBacklogItem(id){
+
+function deleteBacklogItem(id){
+  backlogCache = backlogCache.filter(t=>t.id!==id);
+  renderBacklog();
   setSS('syncing');
-  try{ await deleteDoc(doc(db,'backlog',String(id))); setSS('synced'); }
-  catch(e){ console.error(e); setSS('error'); }
+  suppressNextBlSnap = true;
+  deleteDoc(doc(db,'backlog',String(id)))
+    .then(()=>setSS('synced'))
+    .catch(e=>{ console.error(e); setSS('error'); suppressNextBlSnap=false; });
 }
 
 const mutateDayTasks = (date,fn) => saveDayTasks(date, fn(getDayTasks(date)));
