@@ -451,6 +451,15 @@ const syncLbl = document.getElementById('sync-label');
 const loading = document.getElementById('loading');
 function setSS(s){ syncDot.className='sync-dot '+s; syncLbl.textContent=s==='synced'?'Synced':s==='syncing'?'Syncing…':'Offline'; }
 
+// Safety: dismiss loading after 6s even if Firebase doesn't respond
+setTimeout(()=>{
+  if(!loaded){
+    loaded=true;
+    loading.classList.add('hidden');
+    setSS('error');
+  }
+}, 6000);
+
 /* ── utils ── */
 const pad = n => String(n).padStart(2,'0');
 const todayStr = () => { const d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); };
@@ -754,38 +763,7 @@ function renderDaily(){
 
   const area=document.getElementById('daily-area');
   area.innerHTML=html;
-  const ch=document.getElementById('car-hdr');
-  if(ch) ch.addEventListener('click',()=>{ carriedOpen=!carriedOpen; renderDaily(); });
-
-  area.addEventListener('click',e=>{
-    const el=e.target.closest('[data-action]'); if(!el) return;
-    const a=el.getAttribute('data-action');
-    const id=el.getAttribute('data-id')||el.getAttribute('data-pid');
-    const isC=el.getAttribute('data-ic')==='1';
-    const from=el.getAttribute('data-from')||'';
-    const sid=el.getAttribute('data-sid');
-    const date=el.getAttribute('data-date')||cur;
-    if(a==='toggle'){toggleDaily(id,isC,from);}
-    else if(a==='del'){delDaily(id,isC,from);}
-    else if(a==='expand'){expanded[id]=!expanded[id];renderDaily();}
-    else if(a==='edit'){
-      const task=getDayTasks(isC?from:cur).find(t=>t.id===id);
-      if(task) openEdit('day',id,isC?from:cur,task.text,task.tag);
-    }
-    else if(a==='edittag'){
-      const task=getDayTasks(isC?from:cur).find(t=>t.id===id);
-      if(task) openEdit('day',id,isC?from:cur,task.text,task.tag);
-    }
-    else if(a==='tsub'){toggleSubDaily(id,sid,isC,from);}
-    else if(a==='dsub'){delSubDaily(id,sid,isC,from);}
-    else if(a==='asub'){ const p=el.closest('.sub-panel'); const inp=p?.querySelector('.sub-inp'); if(inp){addSubDaily(id,isC,from,inp.value);inp.value='';} }
-  });
-  area.addEventListener('keydown',e=>{
-    if(e.key!=='Enter') return;
-    const inp=e.target.closest('.sub-inp'); if(!inp) return;
-    const pid=inp.getAttribute('data-pid'), isC=inp.getAttribute('data-ic')==='1', from=inp.getAttribute('data-from')||'';
-    addSubDaily(pid,isC,from,inp.value); inp.value='';
-  });
+  // carried header wired via delegation below (stable listener)
 }
 
 /* ── RENDER BACKLOG ── */
@@ -802,30 +780,92 @@ function renderBacklog(){
     html+=`<div class="sec-head" style="margin-top:18px"><span class="sec-title">Completed</span><div class="sec-line"></div><span class="sec-badge">${done.length}</span></div>`;
     done.forEach(t=>{html+=backlogCardHTML(t);});
   }
-  const area=document.getElementById('backlog-area');
-  area.innerHTML=html;
+  document.getElementById('backlog-area').innerHTML=html;
+}
 
-  area.addEventListener('click',e=>{
+/* ── SINGLE STABLE EVENT LISTENERS — attached once at init ── */
+(function initListeners(){
+  /* daily area */
+  const dailyArea = document.getElementById('daily-area');
+
+  dailyArea.addEventListener('click', e=>{
+    // carried header toggle
+    const hdr = e.target.closest('#car-hdr');
+    if(hdr){ carriedOpen=!carriedOpen; renderDaily(); return; }
+
     const el=e.target.closest('[data-action]'); if(!el) return;
-    const a=el.getAttribute('data-action');
-    const id=el.getAttribute('data-id')||el.getAttribute('data-pid');
-    const sid=el.getAttribute('data-sid');
-    if(a==='btoggle'){toggleBacklog(id);}
-    else if(a==='bdel'){delBacklog(id);}
-    else if(a==='bexpand'){expanded['b_'+id]=!expanded['b_'+id];renderBacklog();}
-    else if(a==='bedit'){ const item=backlogCache.find(t=>t.id===id); if(item) openEdit('backlog',id,null,item.text,item.tag,item.priority); }
-    else if(a==='editpri'){cyclePri(id);}
-    else if(a==='btsub'){toggleSubBacklog(id,sid);}
-    else if(a==='bdsub'){delSubBacklog(id,sid);}
-    else if(a==='basub'){ const p=el.closest('.sub-panel'); const inp=p?.querySelector('.sub-inp'); if(inp){addSubBacklog(id,inp.value);inp.value='';} }
+    const a  = el.getAttribute('data-action');
+    const id = el.getAttribute('data-id');          // always use data-id for the task
+    const pid= el.getAttribute('data-pid');         // only for subtask ops
+    const isC= el.getAttribute('data-ic')==='1';
+    const from=el.getAttribute('data-from')||'';
+    const sid= el.getAttribute('data-sid');
+
+    if(a==='toggle')  { toggleDaily(id,isC,from); }
+    else if(a==='del'){ delDaily(id,isC,from); }
+    else if(a==='expand'){
+      expanded[id]=!expanded[id];
+      renderDaily();
+    }
+    else if(a==='edit'||a==='edittag'){
+      const task=getDayTasks(isC?from:cur).find(t=>t.id===id);
+      if(task) openEdit('day',id,isC?from:cur,task.text,task.tag);
+    }
+    else if(a==='tsub'){ toggleSubDaily(pid,sid,isC,from); }
+    else if(a==='dsub'){ delSubDaily(pid,sid,isC,from); }
+    else if(a==='asub'){
+      const panel=el.closest('.sub-panel');
+      const inp=panel?.querySelector('.sub-inp');
+      if(inp){ addSubDaily(pid,isC,from,inp.value); inp.value=''; }
+    }
   });
-  area.addEventListener('keydown',e=>{
+
+  dailyArea.addEventListener('keydown', e=>{
+    if(e.key!=='Enter') return;
+    const inp=e.target.closest('.sub-inp'); if(!inp) return;
+    const pid=inp.getAttribute('data-pid');
+    const isC=inp.getAttribute('data-ic')==='1';
+    const from=inp.getAttribute('data-from')||'';
+    addSubDaily(pid,isC,from,inp.value); inp.value='';
+  });
+
+  /* backlog area */
+  const backlogArea = document.getElementById('backlog-area');
+
+  backlogArea.addEventListener('click', e=>{
+    const el=e.target.closest('[data-action]'); if(!el) return;
+    const a  = el.getAttribute('data-action');
+    const id = el.getAttribute('data-id');
+    const pid= el.getAttribute('data-pid');
+    const sid= el.getAttribute('data-sid');
+
+    if(a==='btoggle')  { toggleBacklog(id); }
+    else if(a==='bdel'){ delBacklog(id); }
+    else if(a==='bexpand'){
+      expanded['b_'+id]=!expanded['b_'+id];
+      renderBacklog();
+    }
+    else if(a==='bedit'){
+      const item=backlogCache.find(t=>t.id===id);
+      if(item) openEdit('backlog',id,null,item.text,item.tag,item.priority);
+    }
+    else if(a==='editpri'){ cyclePri(id); }
+    else if(a==='btsub'){ toggleSubBacklog(pid,sid); }
+    else if(a==='bdsub'){ delSubBacklog(pid,sid); }
+    else if(a==='basub'){
+      const panel=el.closest('.sub-panel');
+      const inp=panel?.querySelector('.sub-inp');
+      if(inp){ addSubBacklog(pid,inp.value); inp.value=''; }
+    }
+  });
+
+  backlogArea.addEventListener('keydown', e=>{
     if(e.key!=='Enter') return;
     const inp=e.target.closest('.sub-inp'); if(!inp) return;
     const pid=inp.getAttribute('data-bpid');
-    if(pid){addSubBacklog(pid,inp.value);inp.value='';}
+    if(pid){ addSubBacklog(pid,inp.value); inp.value=''; }
   });
-}
+})();
 </script>
 </body>
 </html>
