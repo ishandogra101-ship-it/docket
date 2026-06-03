@@ -14,7 +14,9 @@ Firestore and works offline.
   filter bar (all / pending / done / by category).
 - **Carried-forward** — incomplete tasks from earlier days automatically surface
   on the current day in a collapsible section.
-- **General tasks** — an undated backlog with high / medium / low priority.
+- **General tasks** — an undated backlog with high / medium / low priority. Completed
+  ones are hidden by default (each load) behind a "Show completed" toggle and stamped
+  with their completion date.
 - **Subtasks** with progress bars; a task auto-completes when all subtasks do.
 - **Notes** on any task.
 - **Deadlines** on daily *and* general tasks, with a live colour-coded "days left"

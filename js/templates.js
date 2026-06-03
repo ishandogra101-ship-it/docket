@@ -14,7 +14,13 @@ const I = {
   arrow: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
   recur: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
   clock: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  check: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
 };
+
+/* "Completed <date>" chip for finished general tasks */
+function completedChip(t) {
+  return (t.done && t.completedAt) ? `<div class="done-chip">${I.check} Completed ${esc(friendlyDate(t.completedAt))}</div>` : '';
+}
 
 /* deadline chip — live "days left" while pending, just the date once done */
 function dueChip(t) {
@@ -119,7 +125,7 @@ export function backlogCardHTML(t) {
       <div class="chk ${chkCls}" data-action="btoggle" data-id="${t.id}"></div>
       <div class="task-body-col">
         <div class="task-txt">${esc(t.text)}</div>
-        ${t.due ? `<div class="chip-row">${dueChip(t)}</div>` : ''}
+        <div class="chip-row">${dueChip(t)}${completedChip(t)}</div>
         ${t.note ? `<div class="note-line">${esc(t.note)}</div>` : ''}
         ${progBar(t)}
       </div>

@@ -4,6 +4,7 @@
 import { db, collection, doc, onSnapshot, setDoc, deleteDoc } from './firebase.js';
 import { emit } from './bus.js';
 import { state, setLoaded } from './state.js';
+import { todayStr } from './utils.js';
 
 /* ── path helpers (prefix is the auth seam) ── */
 const PREFIX = '';                       // later: `users/${uid}/`
@@ -62,6 +63,9 @@ export const mutateDayTasks = (date, fn) => saveDayTasks(date, fn(getDayTasks(da
 
 /* ── backlog ── */
 export function saveBacklogItem(item) {
+  // stamp the completion date when it becomes done; clear it when reopened
+  if (item.done && !item.completedAt) item.completedAt = todayStr();
+  else if (!item.done && item.completedAt) item.completedAt = '';
   const idx = state.backlogCache.findIndex(t => t.id === item.id);
   if (idx >= 0) state.backlogCache[idx] = item; else state.backlogCache.push(item);
   state.backlogCache.sort((a, b) => a.createdAt - b.createdAt);

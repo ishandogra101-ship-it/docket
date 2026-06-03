@@ -1,7 +1,7 @@
 /* ── main ── entry point. Wires the bus to render, attaches delegated DOM
    listeners, boots the UI and Firestore subscriptions. ── */
 import { on } from './bus.js';
-import { state, setFilter, setCarriedOpen, toggleExpanded } from './state.js';
+import { state, setFilter, setCarriedOpen, toggleExpanded, setShowDoneBacklog } from './state.js';
 import { shiftStr, todayStr } from './utils.js';
 import { subscribe } from './store.js';
 import { renderDaily, renderBacklog } from './render.js';
@@ -122,6 +122,7 @@ backlogArea.addEventListener('click', e => {
   const pid = el.getAttribute('data-pid');
   const sid = el.getAttribute('data-sid');
 
+  if (a === 'toggledone') { setShowDoneBacklog(!state.showDoneBacklog); return; }
   if (a === 'btoggle') { celebrateIfCompleting(e, el); A.toggleBacklog(id); }
   else if (a === 'bdel') A.delBacklog(id);
   else if (a === 'bexpand') toggleExpanded('b_' + id);
