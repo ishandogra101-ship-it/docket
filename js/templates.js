@@ -1,6 +1,6 @@
 /* ── templates ── pure HTML string builders. No DOM, no side effects. ── */
 import { esc, friendlyDate } from './utils.js';
-import { subState } from './domain.js';
+import { subState, dueInfo } from './domain.js';
 import { state } from './state.js';
 
 /* ── inline icon set (stroke style) ── */
@@ -13,7 +13,16 @@ const I = {
   cal: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>',
   arrow: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
   recur: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+  clock: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
 };
+
+/* deadline chip — live "days left" while pending, just the date once done */
+function dueChip(t) {
+  if (!t.due) return '';
+  if (t.done) return `<div class="due-chip due-done">${I.clock} ${esc(friendlyDate(t.due))}</div>`;
+  const d = dueInfo(t.due);
+  return `<div class="due-chip ${d.cls}">${I.clock} ${esc(d.label)}</div>`;
+}
 
 /* friendly empty-state illustration: clipboard + gradient check badge */
 export const emptyIllu = (id = 'e') => `<svg class="empty-illu" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -73,8 +82,11 @@ export function taskCardHTML(t, isCarried, from) {
       <div class="chk ${chkCls}" data-action="toggle" data-id="${t.id}" data-ic="${ic}" data-from="${fs}"></div>
       <div class="task-body-col">
         <div class="task-txt">${esc(t.text)}</div>
-        ${isCarried ? `<div class="carried-chip">${I.arrow} from ${esc(friendlyDate(from))}</div>` : ''}
-        ${t.spawnedFrom ? `<div class="recur-chip">${I.recur} recurring</div>` : ''}
+        <div class="chip-row">
+          ${isCarried ? `<div class="carried-chip">${I.arrow} from ${esc(friendlyDate(from))}</div>` : ''}
+          ${t.spawnedFrom ? `<div class="recur-chip">${I.recur} recurring</div>` : ''}
+          ${dueChip(t)}
+        </div>
         ${t.note ? `<div class="note-line">${esc(t.note)}</div>` : ''}
         ${progBar(t)}
       </div>
@@ -107,6 +119,7 @@ export function backlogCardHTML(t) {
       <div class="chk ${chkCls}" data-action="btoggle" data-id="${t.id}"></div>
       <div class="task-body-col">
         <div class="task-txt">${esc(t.text)}</div>
+        ${t.due ? `<div class="chip-row">${dueChip(t)}</div>` : ''}
         ${t.note ? `<div class="note-line">${esc(t.note)}</div>` : ''}
         ${progBar(t)}
       </div>

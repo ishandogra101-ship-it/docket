@@ -27,6 +27,9 @@ export const parseDate = s => {
 /* weekday index (0=Sun) for a date string */
 export const weekday = s => parseDate(s).getDay();
 
+/* whole days from date string `a` to date string `b` (b - a). Negative = b before a. */
+export const daysBetween = (a, b) => Math.round((parseDate(b) - parseDate(a)) / 86400000);
+
 export const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export const uid = () => Date.now() + '_' + Math.random().toString(36).slice(2, 8);

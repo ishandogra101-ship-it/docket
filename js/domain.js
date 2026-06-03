@@ -1,8 +1,20 @@
 /* ── domain ── derived data & business logic. Reads cache via the store,
    produces values the view consumes. ── */
 import { state } from './state.js';
-import { pad, parseDate, weekday } from './utils.js';
+import { pad, parseDate, weekday, todayStr, daysBetween } from './utils.js';
 import { getDayTasks, mutateDayTasks } from './store.js';
+
+/* turn a deadline (YYYY-MM-DD) into a countdown label + severity class.
+   Recomputed every render so "days left" stays current. */
+export function dueInfo(due) {
+  if (!due) return null;
+  const days = daysBetween(todayStr(), due);
+  if (days < 0) { const n = -days; return { days, cls: 'due-over', label: `${n} day${n > 1 ? 's' : ''} overdue` }; }
+  if (days === 0) return { days, cls: 'due-soon', label: 'Due today' };
+  if (days === 1) return { days, cls: 'due-soon', label: 'Due tomorrow' };
+  if (days <= 3) return { days, cls: 'due-soon', label: `${days} days left` };
+  return { days, cls: 'due-future', label: `${days} days left` };
+}
 
 /* incomplete tasks from the prior 90 days, surfaced on the current day */
 export function getCarried() {
