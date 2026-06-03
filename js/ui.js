@@ -10,6 +10,9 @@ import { todayStr, uid } from './utils.js';
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+const ICON_MOON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>';
+const ICON_SUN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>';
+
 const $ = id => document.getElementById(id);
 
 /* ── sync status ── */
@@ -24,7 +27,7 @@ const THEME_KEY = 'docket-theme';
 function applyTheme(t) {
   document.documentElement.dataset.theme = t === 'dark' ? 'dark' : '';
   const btn = $('theme-btn');
-  if (btn) btn.textContent = t === 'dark' ? '☀' : '☾';
+  if (btn) btn.innerHTML = t === 'dark' ? ICON_SUN : ICON_MOON;
 }
 export function initTheme() {
   applyTheme(localStorage.getItem(THEME_KEY) || '');

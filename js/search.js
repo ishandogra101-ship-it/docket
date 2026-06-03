@@ -3,6 +3,7 @@
    list (backlog). Pure-client over the cache. ── */
 import { state, setCur, setSearch } from './state.js';
 import { esc, friendlyDate } from './utils.js';
+import { emptyIllu } from './templates.js';
 
 const $ = id => document.getElementById(id);
 
@@ -36,7 +37,7 @@ export function renderSearch() {
 
   let html = '';
   if (!dayHits.length && !blHits.length) {
-    html = '<div class="empty-state"><span class="empty-glyph">？</span><div class="empty-msg">No matches for “' + esc(state.search) + '”</div></div>';
+    html = `<div class="empty-state">${emptyIllu('s')}<div class="empty-msg">No matches for “${esc(state.search)}”</div></div>`;
   } else {
     if (dayHits.length) {
       html += `<div class="sec-head"><span class="sec-title">Daily · ${dayHits.length}</span><div class="sec-line"></div></div><div class="task-list">`;
