@@ -257,7 +257,7 @@ svg{display:block;}
 @keyframes checkdraw{0%{opacity:0;transform:rotate(45deg) translate(-1px,-1.5px) scale(.3);}100%{opacity:1;transform:rotate(45deg) translate(-1px,-1.5px) scale(1);}}
 
 .task-body-col{flex:1;min-width:0;}
-.task-txt{font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.45;word-break:break-word;}
+.task-txt{font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.45;overflow-wrap:break-word;word-break:normal;}
 .task-card.done-card .task-txt{text-decoration:line-through;text-decoration-color:var(--ink4);color:var(--ink3);}
 
 .carried-chip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;color:var(--amberD);background:var(--amberS);border-radius:var(--rpill);padding:3px 9px;}
@@ -464,6 +464,13 @@ svg{display:block;}
   .add-inp{width:100%;flex:none;}
   .tag-sel,.pri-sel,.add-btn-main{flex:1;}
   .task-card:hover,.backlog-card:hover{transform:none;}
+
+  /* give the title the full card width; wrap tag/priority/actions below it
+     so words no longer break mid-character on narrow screens */
+  .task-main-row,.backlog-task-row{flex-wrap:wrap;align-items:flex-start;row-gap:10px;padding:13px 14px;}
+  .chk{margin-top:1px;}
+  .task-txt{font-size:15px;}
+  .task-meta{width:100%;justify-content:flex-start;gap:6px;}
 }
 @media(max-width:360px){
   .date-big{font-size:30px;}
