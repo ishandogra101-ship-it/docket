@@ -63,11 +63,12 @@ export function showUndoToast(msg, undoFn, ms = 5000) {
 
 /* ── edit modal ── */
 let editState = null;   // {type:'day'|'backlog', id, date?}
-export function openEdit(type, id, date, text, tag, pri, note) {
+export function openEdit(type, id, date, text, tag, pri, note, due) {
   editState = { type, id, date };
   $('edit-text').value = text;
   $('edit-tag').value = tag || 'work';
   $('edit-note').value = note || '';
+  $('edit-due').value = due || '';
   $('edit-pri-field').style.display = type === 'backlog' ? 'block' : 'none';
   if (type === 'backlog') $('edit-pri').value = pri || 'medium';
   $('edit-modal').classList.add('open');
@@ -78,10 +79,11 @@ function saveEdit() {
   const txt = $('edit-text').value.trim(); if (!txt) return;
   const tag = $('edit-tag').value;
   const note = $('edit-note').value.trim();
+  const due = $('edit-due').value || '';
   if (editState.type === 'day') {
-    mutateDayTasks(editState.date, tasks => tasks.map(t => t.id === editState.id ? { ...t, text: txt, tag, note } : t));
+    mutateDayTasks(editState.date, tasks => tasks.map(t => t.id === editState.id ? { ...t, text: txt, tag, note, due } : t));
   } else {
-    mutateBacklog(editState.id, t => ({ ...t, text: txt, tag, note, priority: $('edit-pri').value }));
+    mutateBacklog(editState.id, t => ({ ...t, text: txt, tag, note, due, priority: $('edit-pri').value }));
   }
   $('edit-modal').classList.remove('open'); editState = null;
 }
@@ -103,7 +105,7 @@ function doSchedule() {
   // create a day task on the target date, then remove from backlog
   mutateDayTasks(date, tasks => [...tasks, {
     id: uid(), text: item.text, tag: item.tag || 'other', done: false,
-    addedOn: date, subtasks: [...(item.subtasks || [])], note: item.note || '', createdAt: Date.now(),
+    addedOn: date, subtasks: [...(item.subtasks || [])], note: item.note || '', due: item.due || '', createdAt: Date.now(),
   }]);
   const removed = item;
   deleteBacklogItem(scheduleId);
@@ -182,6 +184,7 @@ export function initUI() {
   const eModal = $('edit-modal');
   $('edit-cancel').addEventListener('click', () => { eModal.classList.remove('open'); editState = null; });
   $('edit-save').addEventListener('click', saveEdit);
+  $('edit-due-clear').addEventListener('click', () => { $('edit-due').value = ''; });
   eModal.addEventListener('click', e => { if (e.target === eModal) { eModal.classList.remove('open'); editState = null; } });
 
   // schedule modal

@@ -11,7 +11,7 @@ import { showUndoToast, openEdit, openSchedule } from './ui.js';
 export function addDaily(text, tag) {
   const txt = text.trim(); if (!txt) return;
   const tasks = getDayTasks(state.cur);
-  tasks.push({ id: uid(), text: txt, tag, done: false, addedOn: state.cur, subtasks: [], note: '', createdAt: Date.now() });
+  tasks.push({ id: uid(), text: txt, tag, done: false, addedOn: state.cur, subtasks: [], note: '', due: '', createdAt: Date.now() });
   mutateDayTasks(state.cur, () => tasks);
 }
 export function toggleDaily(id, isC, from) {
@@ -56,13 +56,13 @@ export function delSubDaily(pid, sid, isC, from) {
 export function editDaily(id, isC, from) {
   const date = isC ? from : state.cur;
   const task = getDayTasks(date).find(t => t.id === id);
-  if (task) openEdit('day', id, date, task.text, task.tag, null, task.note);
+  if (task) openEdit('day', id, date, task.text, task.tag, null, task.note, task.due);
 }
 
 /* ── backlog ── */
 export function addBacklog(text, tag, priority) {
   const txt = text.trim(); if (!txt) return;
-  saveBacklogItem({ id: uid(), text: txt, tag, priority, done: false, subtasks: [], note: '', createdAt: Date.now() });
+  saveBacklogItem({ id: uid(), text: txt, tag, priority, done: false, subtasks: [], note: '', due: '', createdAt: Date.now() });
 }
 export function toggleBacklog(id) {
   mutateBacklog(id, t => {
@@ -91,7 +91,7 @@ export function delSubBacklog(pid, sid) {
 }
 export function editBacklog(id) {
   const item = state.backlogCache.find(t => t.id === id);
-  if (item) openEdit('backlog', id, null, item.text, item.tag, item.priority, item.note);
+  if (item) openEdit('backlog', id, null, item.text, item.tag, item.priority, item.note, item.due);
 }
 export function scheduleBacklog(id) { openSchedule(id); }
 

@@ -135,6 +135,12 @@ backlogArea.addEventListener('keydown', e => {
   if (pid) { A.addSubBacklog(pid, inp.value); inp.value = ''; }
 });
 
+/* keep deadline countdowns current: refresh on refocus + periodically so a
+   day rollover updates "days left" without a manual reload */
+function refreshCountdowns() { renderDaily(); renderBacklog(); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshCountdowns(); });
+setInterval(refreshCountdowns, 10 * 60 * 1000);
+
 /* ── boot ── */
 initUI();
 initSearch();
