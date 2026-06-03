@@ -9,9 +9,17 @@ import { setCur } from './state.js';
 import { initUI } from './ui.js';
 import { initSearch, renderSearch } from './search.js';
 import { initShortcuts } from './shortcuts.js';
+import { burst } from './confetti.js';
 import * as A from './actions.js';
 
 const $ = id => document.getElementById(id);
+
+/* fire confetti when a checkbox click will complete a task (unchecked +
+   not partially blocked by subtasks) */
+function celebrateIfCompleting(e, chk) {
+  if (chk.classList.contains('checked') || chk.classList.contains('partial')) return;
+  burst(e.clientX || 0, e.clientY || 0);
+}
 
 /* ── bus → view ── */
 on('daily:changed', renderDaily);
@@ -56,7 +64,7 @@ dailyArea.addEventListener('click', e => {
   const from = el.getAttribute('data-from') || '';
   const sid = el.getAttribute('data-sid');
 
-  if (a === 'toggle') A.toggleDaily(id, isC, from);
+  if (a === 'toggle') { celebrateIfCompleting(e, el); A.toggleDaily(id, isC, from); }
   else if (a === 'del') A.delDaily(id, isC, from);
   else if (a === 'expand') toggleExpanded(id);
   else if (a === 'edit' || a === 'edittag') A.editDaily(id, isC, from);
@@ -107,7 +115,7 @@ backlogArea.addEventListener('click', e => {
   const pid = el.getAttribute('data-pid');
   const sid = el.getAttribute('data-sid');
 
-  if (a === 'btoggle') A.toggleBacklog(id);
+  if (a === 'btoggle') { celebrateIfCompleting(e, el); A.toggleBacklog(id); }
   else if (a === 'bdel') A.delBacklog(id);
   else if (a === 'bexpand') toggleExpanded('b_' + id);
   else if (a === 'bedit') A.editBacklog(id);
