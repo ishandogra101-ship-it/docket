@@ -1,13 +1,15 @@
 /* ── render ── reads state, writes DOM. Subscribed to bus change events in
    main.js. Does not import the store's write functions. ── */
 import { state } from './state.js';
-import { todayStr, parseDate } from './utils.js';
+import { todayStr, parseDate, pad, shiftStr, daysBetween } from './utils.js';
 import { getDayTasks } from './store.js';
-import { getCarried, calcXP, calcStreak, generateRecurringFor } from './domain.js';
+import { getCarried, calcXP, calcStreak, generateRecurringFor, dueInfo } from './domain.js';
 import { taskCardHTML, backlogCardHTML, emptyIllu } from './templates.js';
 
 const $ = id => document.getElementById(id);
 const generated = new Set();   // dates we've already materialized recurring tasks for
+
+const isOverdue = t => !t.done && t.due && daysBetween(todayStr(), t.due) < 0;
 
 export function renderDaily() {
   const d = parseDate(state.cur);
@@ -45,6 +47,7 @@ export function renderDaily() {
     if (state.filter === 'all') return true;
     if (state.filter === 'done') return t.done;
     if (state.filter === 'pending') return !t.done;
+    if (state.filter === 'overdue') return isOverdue(t);
     return t.tag === state.filter;
   };
   const fOwn = own.filter(match);
@@ -67,6 +70,42 @@ export function renderDaily() {
     }
   }
   $('daily-area').innerHTML = html;
+  renderWeek();
+}
+
+/* week strip: 7 days (Sun–Sat) around the current date, with per-day task
+   counts and a deadline marker. Click a day to jump to it. */
+export function renderWeek() {
+  const strip = $('week-strip');
+  if (!strip) return;
+  const cur = parseDate(state.cur);
+  const start = shiftStr(state.cur, -cur.getDay());   // back up to Sunday
+  const today = todayStr();
+  // collect all due dates (pending) from daily caches + backlog for markers
+  const dueDates = {};
+  Object.values(state.dayCache).forEach(tasks => (tasks || []).forEach(t => { if (t.due && !t.done) dueDates[t.due] = true; }));
+  (state.backlogCache || []).forEach(t => { if (t.due && !t.done) dueDates[t.due] = true; });
+
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const ds = shiftStr(start, i);
+    const d = parseDate(ds);
+    const tasks = getDayTasks(ds);
+    const total = tasks.length, done = tasks.filter(t => t.done).length;
+    const allDone = total > 0 && done === total;
+    const cls = ['week-day'];
+    if (ds === state.cur) cls.push('sel');
+    if (ds === today) cls.push('today');
+    const dot = total
+      ? `<span class="week-dot ${allDone ? 'all' : 'some'}">${done}/${total}</span>`
+      : '<span class="week-dot empty"></span>';
+    const due = dueDates[ds] ? '<span class="week-due" title="Has a deadline"></span>' : '';
+    html += `<button class="${cls.join(' ')}" data-date="${ds}">
+      <span class="week-dow">${d.toLocaleDateString('en-IN', { weekday: 'narrow' })}</span>
+      <span class="week-num">${d.getDate()}</span>${dot}${due}
+    </button>`;
+  }
+  strip.innerHTML = html;
 }
 
 export function renderBacklog() {
@@ -77,7 +116,12 @@ export function renderBacklog() {
     return;
   }
   const priOrder = { high: 0, medium: 1, low: 2 };
-  const pending = bl.filter(t => !t.done).sort((a, b) => (priOrder[a.priority || 'medium']) - (priOrder[b.priority || 'medium']));
+  const pending = bl.filter(t => !t.done).sort((a, b) => {
+    const ad = a.due ? 0 : 1, bd = b.due ? 0 : 1;
+    if (ad !== bd) return ad - bd;                                       // tasks with a deadline first
+    if (a.due && b.due && a.due !== b.due) return a.due < b.due ? -1 : 1; // soonest/overdue first
+    return (priOrder[a.priority || 'medium']) - (priOrder[b.priority || 'medium']);
+  });
   const done = bl.filter(t => t.done);
   let html = '';
   pending.forEach(t => { html += backlogCardHTML(t); });

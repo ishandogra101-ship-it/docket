@@ -379,6 +379,30 @@ svg{display:block;}
 .recur-when{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--purple);background:var(--purpleS);padding:3px 9px;border-radius:var(--rpill);}
 .recur-empty{font-size:13px;color:var(--ink4);padding:8px 0 14px;font-weight:500;}
 
+/* ── WEEK STRIP ── */
+.week-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:26px;}
+.week-strip:empty{display:none;}
+.week-day{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 4px 10px;border:1.5px solid var(--border);border-radius:var(--r12);background:var(--surface);cursor:pointer;transition:all var(--ease);box-shadow:var(--sh-sm);}
+.week-day:hover{transform:translateY(-2px);border-color:var(--primary);box-shadow:var(--sh);}
+.week-day:active{transform:scale(.95);}
+.week-day.sel{background:var(--grad);border-color:transparent;box-shadow:0 8px 18px rgba(99,102,241,.4);}
+.week-day.sel .week-dow,.week-day.sel .week-num{color:#fff;}
+.week-day.today .week-num{color:var(--primary);}
+.week-day.sel.today .week-num{color:#fff;}
+.week-day.today::before{content:'';position:absolute;top:6px;right:7px;width:5px;height:5px;border-radius:50%;background:var(--primary);}
+.week-day.sel.today::before{background:#fff;}
+.week-dow{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink4);}
+.week-num{font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;line-height:1;color:var(--ink);}
+.week-dot{font-size:9.5px;font-weight:800;min-height:14px;display:grid;place-items:center;padding:1px 6px;border-radius:var(--rpill);}
+.week-dot.some{color:var(--amberD);background:var(--amberS);}
+.week-dot.all{color:#fff;background:var(--green);}
+.week-dot.empty{background:none;}
+.week-day.sel .week-dot.some{background:rgba(255,255,255,.22);color:#fff;}
+.week-day.sel .week-dot.all{background:rgba(255,255,255,.3);color:#fff;}
+.week-due{position:absolute;bottom:6px;width:5px;height:5px;border-radius:50%;background:var(--rust);}
+.week-day.sel .week-due{background:#fff;}
+@media(max-width:600px){.week-strip{gap:5px;}.week-num{font-size:16px;}.week-day{padding:9px 2px 8px;}.week-dot{font-size:9px;padding:1px 4px;}}
+
 /* ── SEARCH RESULTS ── */
 .search-results .sec-head{margin-top:20px;}
 .search-results .sec-head:first-child{margin-top:0;}

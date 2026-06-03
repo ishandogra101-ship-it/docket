@@ -17,6 +17,13 @@ Firestore and works offline.
 - **General tasks** — an undated backlog with high / medium / low priority.
 - **Subtasks** with progress bars; a task auto-completes when all subtasks do.
 - **Notes** on any task.
+- **Deadlines** on daily *and* general tasks, with a live colour-coded "days left"
+  countdown ("Due today", "N days left", "N days overdue"); set/change/clear from the
+  edit modal. General tasks sort by soonest deadline, and an **Overdue** filter surfaces
+  late daily tasks.
+- **Week strip** — a 7-day navigator showing each day's task count + deadline markers;
+  click to jump.
+- **Reminders** — opt-in browser notifications for tasks due today/overdue.
 - **Schedule** a general task onto a specific day (📅).
 - **Recurring tasks** — daily or specific weekdays; instances are generated
   per day, idempotently.
@@ -92,8 +99,8 @@ js/
 
 | Collection | Doc id | Shape |
 | --- | --- | --- |
-| `dayTasks` | `YYYY-MM-DD` | `{ tasks: [ { id, text, tag, done, subtasks[], note, addedOn, createdAt, spawnedFrom? } ] }` |
-| `backlog` | task id | `{ id, text, tag, priority, done, subtasks[], note, createdAt }` |
+| `dayTasks` | `YYYY-MM-DD` | `{ tasks: [ { id, text, tag, done, subtasks[], note, due, addedOn, createdAt, spawnedFrom? } ] }` |
+| `backlog` | task id | `{ id, text, tag, priority, done, subtasks[], note, due, createdAt }` |
 | `recurring` | template id | `{ id, text, tag, freq:'daily'\|'weekly', days:[0-6], startDate, createdAt }` |
 
 > **Auth is deferred but designed for.** Today the data is a single shared dataset.

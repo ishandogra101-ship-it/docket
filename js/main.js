@@ -9,6 +9,7 @@ import { setCur } from './state.js';
 import { initUI } from './ui.js';
 import { initSearch, renderSearch } from './search.js';
 import { initShortcuts } from './shortcuts.js';
+import { initReminders } from './reminders.js';
 import { burst } from './confetti.js';
 import * as A from './actions.js';
 
@@ -34,6 +35,12 @@ document.querySelector('.filter-bar').addEventListener('click', e => {
   const btn = e.target.closest('.fb'); if (!btn) return;
   setFilter(btn.getAttribute('data-f'));
   document.querySelectorAll('.fb').forEach(b => b.classList.toggle('active', b === btn));
+});
+
+/* week strip: jump to a day */
+$('week-strip').addEventListener('click', e => {
+  const b = e.target.closest('[data-date]');
+  if (b) setCur(b.getAttribute('data-date'));
 });
 
 /* ── add inputs ── */
@@ -145,6 +152,7 @@ setInterval(refreshCountdowns, 10 * 60 * 1000);
 initUI();
 initSearch();
 initShortcuts();
+initReminders();
 renderDaily();
 renderBacklog();
 subscribe();

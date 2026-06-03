@@ -162,6 +162,7 @@
   <button class="menu-item" id="menu-import"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 9l5-5 5 5"/><path d="M12 4v12"/></svg>Import backup</button>
   <div class="menu-sep"></div>
   <button class="menu-item" id="menu-recur"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.1 21 6l-4 3.9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 21.9 3 18l4-3.9"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>Recurring tasks</button>
+  <button class="menu-item" id="menu-remind"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span id="remind-label">Enable reminders</span></button>
 </div>
 <input type="file" id="import-file" accept="application/json" style="display:none">
 
@@ -203,6 +204,9 @@
     <div class="streak-chip cold" id="streak-chip">🔥 0 days</div>
   </div>
 
+  <!-- Week strip (click a day to jump) -->
+  <div class="week-strip" id="week-strip"></div>
+
   <!-- Search results (shown only while searching) -->
   <div class="search-results" id="search-results" style="display:none"></div>
 
@@ -219,6 +223,7 @@
         <button class="fb active" data-f="all">All</button>
         <button class="fb" data-f="pending">Pending</button>
         <button class="fb" data-f="done">Done</button>
+        <button class="fb" data-f="overdue">Overdue</button>
         <button class="fb" data-f="work">Work</button>
         <button class="fb" data-f="personal">Personal</button>
         <button class="fb" data-f="health">Health</button>
