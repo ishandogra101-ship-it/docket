@@ -122,12 +122,16 @@ export function renderBacklog() {
     if (a.due && b.due && a.due !== b.due) return a.due < b.due ? -1 : 1; // soonest/overdue first
     return (priOrder[a.priority || 'medium']) - (priOrder[b.priority || 'medium']);
   });
-  const done = bl.filter(t => t.done);
+  // most-recently completed first
+  const done = bl.filter(t => t.done).sort((a, b) => (b.completedAt || '').localeCompare(a.completedAt || ''));
   let html = '';
   pending.forEach(t => { html += backlogCardHTML(t); });
   if (done.length) {
-    html += `<div class="sec-head" style="margin-top:18px"><span class="sec-title">Completed</span><div class="sec-line"></div><span class="sec-badge">${done.length}</span></div>`;
-    done.forEach(t => { html += backlogCardHTML(t); });
+    html += `<button class="show-done${state.showDoneBacklog ? ' on' : ''}" data-action="toggledone">
+      <span class="show-done-box"></span>
+      <span>${state.showDoneBacklog ? 'Hide' : 'Show'} completed (${done.length})</span>
+    </button>`;
+    if (state.showDoneBacklog) done.forEach(t => { html += backlogCardHTML(t); });
   }
   $('backlog-area').innerHTML = html;
 }

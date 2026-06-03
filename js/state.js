@@ -13,6 +13,7 @@ export const state = {
   carriedOpen: true,
   expanded: {},        // { taskId|('b_'+id): bool }
   search: '',          // global search query
+  showDoneBacklog: false, // completed general tasks hidden by default each load
   loaded: false,
 };
 
@@ -40,6 +41,11 @@ export function toggleExpanded(key) {
 export function setSearch(q) {
   state.search = q;
   emit('search:changed');
+}
+
+export function setShowDoneBacklog(v) {
+  state.showDoneBacklog = v;
+  emit('backlog:changed');
 }
 
 export function setLoaded(v) { state.loaded = v; }
