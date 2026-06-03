@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/docket.css">
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="loading-brand">Docket</div>
+  <div class="loading-sub">Syncing your tasks</div>
+  <div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">Edit Task</div>
+    <div class="modal-field">
+      <label class="modal-label">Task name</label>
+      <input class="modal-inp" id="edit-text" type="text">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Category</label>
+      <select class="modal-sel" id="edit-tag">
+        <option value="work">Work</option>
+        <option value="personal">Personal</option>
+        <option value="health">Health</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="modal-field" id="edit-pri-field" style="display:none">
+      <label class="modal-label">Priority</label>
+      <select class="modal-sel" id="edit-pri">
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Notes</label>
+      <textarea class="modal-area" id="edit-note" placeholder="Add details, links, context…"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" id="edit-cancel">Cancel</button>
+      <button class="modal-save" id="edit-save">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Modal -->
+<div class="modal-overlay" id="sched-modal">
+  <div class="modal">
+    <div class="modal-title">Schedule Task</div>
+    <div class="modal-field">
+      <label class="modal-label">Task</label>
+      <div id="sched-name" class="task-txt"></div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Pick a day</label>
+      <input class="modal-inp" id="sched-date" type="date">
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" id="sched-cancel">Cancel</button>
+      <button class="modal-save" id="sched-go">Schedule</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recurring Tasks Modal -->
+<div class="modal-overlay" id="recur-modal">
+  <div class="modal">
+    <div class="modal-title">Recurring Tasks</div>
+    <div id="recur-list"></div>
+    <div class="modal-field" style="margin-top:8px">
+      <label class="modal-label">New recurring task</label>
+      <input class="modal-inp" id="recur-text" type="text" placeholder="e.g. Morning workout">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Category</label>
+      <select class="modal-sel" id="recur-tag">
+        <option value="work">Work</option>
+        <option value="personal">Personal</option>
+        <option value="health">Health</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Frequency</label>
+      <select class="modal-sel" id="recur-freq">
+        <option value="daily">Every day</option>
+        <option value="weekly">Weekly</option>
+      </select>
+    </div>
+    <div class="modal-field" id="recur-days-field" style="display:none">
+      <label class="modal-label">On these days</label>
+      <div class="recur-days" id="recur-days">
+        <button class="recur-day" data-d="0">Su</button>
+        <button class="recur-day" data-d="1">Mo</button>
+        <button class="recur-day" data-d="2">Tu</button>
+        <button class="recur-day" data-d="3">We</button>
+        <button class="recur-day" data-d="4">Th</button>
+        <button class="recur-day" data-d="5">Fr</button>
+        <button class="recur-day" data-d="6">Sa</button>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" id="recur-close">Close</button>
+      <button class="modal-save" id="recur-add">+ Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirm-title">Delete Task</div>
+    <div class="confirm-msg" id="confirm-msg">This will permanently delete the task and all its subtasks.</div>
+    <div class="confirm-btns">
+      <button class="confirm-no" id="confirm-no">Cancel</button>
+      <button class="confirm-del" id="confirm-yes">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Undo toast -->
+<div class="toast-wrap" id="toast-wrap">
+  <span class="toast-msg" id="toast-msg"></span>
+  <button class="toast-undo" id="toast-undo">Undo</button>
+</div>
+
+<!-- Sync bar -->
+<div class="sync-bar">
+  <div class="sync-brand"><span class="brand-dot"></span>Docket</div>
+  <div class="sync-tools">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input class="search-inp" id="search-inp" type="text" placeholder="Search tasks…  ( / )">
+    </div>
+    <div class="sync-status"><div class="sync-dot syncing" id="sync-dot"></div><span id="sync-label">Connecting…</span></div>
+    <button class="tool-btn" id="theme-btn" title="Toggle theme">☾</button>
+    <button class="tool-btn" id="menu-btn" title="More">⋯</button>
+  </div>
+</div>
+
+<!-- Overflow menu -->
+<div class="menu-pop" id="menu-pop">
+  <button class="menu-item" id="menu-export">⬇  Export backup (JSON)</button>
+  <button class="menu-item" id="menu-import">⬆  Import backup</button>
+  <div class="menu-sep"></div>
+  <button class="menu-item" id="menu-recur">↻  Recurring tasks</button>
+</div>
+<input type="file" id="import-file" accept="application/json" style="display:none">
+
+<div class="page">
+  <!-- Date header -->
+  <div class="date-header">
+    <div>
+      <div class="date-weekday" id="dv-weekday"></div>
+      <div class="date-big" id="dv-day"></div>
+      <div class="date-monthyear" id="dv-month"></div>
+    </div>
+    <div class="date-controls">
+      <button class="nav-btn" id="btn-prev">&#8592;</button>
+      <button class="today-chip" id="btn-today">Today</button>
+      <button class="nav-btn" id="btn-next">&#8594;</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-strip">
+    <div class="stat-cell"><div class="stat-lbl">Total</div><div class="stat-num" id="s-total">0</div></div>
+    <div class="stat-cell s-done"><div class="stat-lbl">Done</div><div class="stat-num" id="s-done">0</div></div>
+    <div class="stat-cell s-carried"><div class="stat-lbl">Carried</div><div class="stat-num" id="s-carried">0</div></div>
+    <div class="stat-cell s-pct"><div class="stat-lbl">Progress</div><div class="stat-num" id="s-pct">—</div></div>
+  </div>
+  <div class="prog-row">
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="prog-txt" id="prog-txt">No tasks</div>
+  </div>
+
+  <!-- XP + streak bar -->
+  <div class="xp-row">
+    <div class="xp-icon">⚡</div>
+    <div class="xp-info">
+      <div class="xp-label">Daily XP</div>
+      <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+    </div>
+    <div class="xp-pts" id="xp-pts">0 XP</div>
+    <div class="streak-chip cold" id="streak-chip">🔥 0 days</div>
+  </div>
+
+  <!-- Search results (shown only while searching) -->
+  <div class="search-results" id="search-results" style="display:none"></div>
+
+  <!-- Workspace: two columns on desktop, stacked on mobile -->
+  <div class="workspace" id="workspace">
+    <!-- Daily section -->
+    <div class="section">
+      <div class="sec-head">
+        <span class="sec-title">Daily Tasks</span>
+        <div class="sec-line"></div>
+        <span class="sec-badge" id="daily-count">0</span>
+      </div>
+      <div class="filter-bar">
+        <button class="fb active" data-f="all">All</button>
+        <button class="fb" data-f="pending">Pending</button>
+        <button class="fb" data-f="done">Done</button>
+        <button class="fb" data-f="work">Work</button>
+        <button class="fb" data-f="personal">Personal</button>
+        <button class="fb" data-f="health">Health</button>
+      </div>
+      <div class="add-wrap">
+        <input class="add-inp" id="d-inp" type="text" placeholder="Add a task for today…">
+        <select class="tag-sel" id="d-tag">
+          <option value="work">Work</option>
+          <option value="personal">Personal</option>
+          <option value="health">Health</option>
+          <option value="other">Other</option>
+        </select>
+        <button class="add-btn-main" id="d-add">+ Add</button>
+      </div>
+      <div id="daily-area"></div>
+    </div>
+
+    <div class="section-divider" data-label="General Tasks"></div>
+
+    <!-- Backlog section -->
+    <div class="section">
+      <div class="sec-head">
+        <span class="sec-title">General Tasks</span>
+        <div class="sec-line"></div>
+        <span class="sec-badge" id="backlog-count">0</span>
+      </div>
+      <div style="font-size:12px;color:var(--ink4);margin-bottom:10px;">No specific date — done whenever they get done.</div>
+      <div class="add-wrap">
+        <input class="add-inp" id="b-inp" type="text" placeholder="Add a general task…">
+        <select class="tag-sel" id="b-tag">
+          <option value="work">Work</option>
+          <option value="personal">Personal</option>
+          <option value="health">Health</option>
+          <option value="other">Other</option>
+        </select>
+        <select class="pri-sel" id="b-pri">
+          <option value="medium">Med</option>
+          <option value="high">High</option>
+          <option value="low">Low</option>
+        </select>
+        <button class="add-btn-main" id="b-add">+ Add</button>
+      </div>
+      <div id="backlog-area"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
